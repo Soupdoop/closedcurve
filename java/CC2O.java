@@ -51,7 +51,7 @@ public class CC2O {
     }
     System.out.println("\nPoints generated!");
     points[points.length - 1] = points[0];
-    two_opt(0);
+    //while(two_opt(0) > 0);
     two_opt(0);
     System.out.println("2-opt done!");
   }
@@ -77,20 +77,21 @@ public class CC2O {
     return BASE_WHITE + (1 - BASE_WHITE) * darkness * darkness * darkness;
   }
 
-  private void two_opt(int start) {
-    boolean swapped = false;
+  private int two_opt(int start) {
+    int swapped = 0;
     for(int j = start + 3; j < points.length; j++) {
       if(points[start].DistanceSquaredTo(points[start + 1]) + points[j - 1].DistanceSquaredTo(points[j]) >
          points[start].DistanceSquaredTo(points[j - 1]) + points[start + 1].DistanceSquaredTo(points[j])) {
         swap(start + 1, j - 1);
-        swapped = true;
+        swapped++;
       }
     }
-    if(swapped) {
-      two_opt(start);
+    if(swapped > 0) {
+      return swapped + two_opt(start);
     } else if(points.length - start > 4) {
-      two_opt(start + 1);
+      return two_opt(start + 1);
     }
+    return 0;
   }
 
   private void swap(int start, int end) {
