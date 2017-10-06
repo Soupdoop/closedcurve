@@ -1,4 +1,62 @@
 
+var generatePoints = function(image) {
+  var tempCanvas = document.create('canvas');
+  var tempContext = tempContext.getContext("2d");
+  tempContext.draw(image, 0, 0);
+  var imageRGB = tempContext.getImageData(0, 0, image.width, image.height).data;
+
+  var generatedPoints = [];
+
+  var cumulativeDarkness = 0;
+
+  for(int i = 0; i < image.width; i++) {
+    for(int j = 0; j < image.height; j++) {
+      var loc = ((j * image.width) + i) * 4;
+      var r = imageRGB[loc];
+      var g = imageRGB[loc + 1];
+      var b = imageRGB[loc + 2];
+      var a = imageRGB[loc + 3];
+
+      var darkness = (1 - (r + g + b)/(765)) * (a / 255);
+      cumulativeDarkness += darkness;
+      if(cumulativeDarkness >= 1) {
+        cumulativeDarkness -= 1;
+        generatedPoints.push(new Point(i,j));
+      }
+    }
+  }
+
+  return generatedPoints;
+}
+
+//ClosedCurve Class
+
+var ClosedCurve = function() {
+  this.points = [];
+}
+
+ClosedCurve.prototype.sortPoints = function() {
+  this.points = this.points.sort(new function(a,b) {
+    return a.sierpinski_pi() - b.sierpinski_pi();
+  });
+}
+
+ClosedCurve.prototype.two_opt = function(startIndex) {
+  var swapped = 0;
+  for(var j = start + 3; j < this.points.length; j++) {
+    if(this.points[start].DistanceSquaredTo(this.points[start + 1]) + this.points[j - 1].DistanceSquaredTo(this.points[j]) >
+       this.points[start].DistanceSquaredTo(this.points[j - 1]) + this.points[start + 1].DistanceSquaredTo(this.points[j])) {
+      this.swap(start + 1, j - 1);
+      swapped++;
+    }
+  }
+  if(swapped > 0) {
+    return swapped + this.two_opt(start);
+  } else if(points.length - start > 4) {
+    return this.two_opt(start + 1);
+  }
+  return 0;
+}
 
 //Point Class
 
@@ -12,16 +70,16 @@ var Point = function(x,y) {
   this.has_cached = false;
 };
 
-Point.prototype.sierpinski_pi = function() {
+Point.prototype.sierpinski_pi = function(totalWidth, totalHeight) {
   if(this.has_cached) {
     return this.cached_spi;
   }
-  if(this.DistanceSquaredTo(new Point(0,0)) < this.DistanceSquaredTo(new Point(1,1))) {
-    this.cached_spi = this.raw_sierpinski_pi(new CurvePoint(0,1), new CurvePoint(0,0), new CurvePoint(1,0), SPI_DEPTH(), 0);
+  if(this.DistanceSquaredTo(new Point(0,0)) < this.DistanceSquaredTo(new Point(totalWidth, totalHeight))) {
+    this.cached_spi = this.raw_sierpinski_pi(new CurvePoint(0,totalHeight), new CurvePoint(0,0), new CurvePoint(totalWidth,0), SPI_DEPTH(), 0);
     this.has_cached = true;
     return this.cached_spi;
   } else {
-    this.cached_spi = this.raw_sierpinski_pi(new CurvePoint(0,1), new CurvePoint(1,1), new CurvePoint(1,0), SPI_DEPTH(), 1);
+    this.cached_spi = this.raw_sierpinski_pi(new CurvePoint(0,totalHeight), new CurvePoint(totalWidth,totalHeight), new CurvePoint(totalWidth,0), SPI_DEPTH(), 1);
     this.has_cached = true;
     return this.cached_spi;
   }
