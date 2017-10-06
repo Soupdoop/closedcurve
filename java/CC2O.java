@@ -51,8 +51,7 @@ public class CC2O {
     }
     System.out.println("\nPoints generated!");
     points[points.length - 1] = points[0];
-    //while(two_opt(0) > 0);
-    two_opt(0);
+    while(two_opt(0) > 0);
     System.out.println("2-opt done!");
   }
 
