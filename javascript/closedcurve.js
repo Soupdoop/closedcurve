@@ -31,13 +31,35 @@ var generatePoints = function(image) {
 
 //ClosedCurve Class
 
-var ClosedCurve = function() {
-  this.points = [];
+var SHOULD_SORT = function() {
+  return true; //Could check user input for this option
 }
 
-ClosedCurve.prototype.sortPoints = function() {
+var SHOULD_CLEAR_INTERSECTIONS = function() {
+  return true; //Could check user input for this option
+}
+
+var ClosedCurve = function(image) {
+  if(image != null) {
+    this.points = generatedPoints(image);
+    this.width = image.width;
+    this.height = image.height;
+    if(SHOULD_SORT()) {
+      this.sortPoints(this.width, this.height);
+    }
+    if(SHOULD_CLEAR_INTERSECTIONS()) {
+      while(this.two_opt(0) != 0);
+    }
+  } else {
+    this.points = [];
+    this.height = 0;
+    this.width = 0;
+  }
+}
+
+ClosedCurve.prototype.sortPoints = function(imageWidth, imageHeight) {
   this.points = this.points.sort(new function(a,b) {
-    return a.sierpinski_pi() - b.sierpinski_pi();
+    return a.sierpinski_pi(imageWidth,imageHeight) - b.sierpinski_pi(imageWidth,imageHeight);
   });
 }
 
@@ -61,7 +83,7 @@ ClosedCurve.prototype.two_opt = function(startIndex) {
 //Point Class
 
 var SPI_DEPTH = function() {
-  return 10; //Can be retrieved from user input later
+  return 10; //Could check user input for this option
 };
 
 var Point = function(x,y) {
