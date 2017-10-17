@@ -49,9 +49,11 @@ public class CC2O {
     for(int i = 0; i < expandablePoints.size(); i++) {
       points[i] = expandablePoints.get(i);
     }
-    System.out.println("\nPoints generated!");
+    System.out.println(points.length + " points generated!");
     points[points.length - 1] = points[0];
-    while(two_opt(0) > 0);
+    while(two_opt(0) > 0) {
+      System.out.println("2-opting again!");
+    }
     System.out.println("2-opt done!");
   }
 
@@ -76,21 +78,18 @@ public class CC2O {
     return BASE_WHITE + (1 - BASE_WHITE) * darkness * darkness * darkness;
   }
 
-  private int two_opt(int start) {
+  private int two_opt(int startIndex) {
     int swapped = 0;
-    for(int j = start + 3; j < points.length; j++) {
-      if(points[start].DistanceSquaredTo(points[start + 1]) + points[j - 1].DistanceSquaredTo(points[j]) >
-         points[start].DistanceSquaredTo(points[j - 1]) + points[start + 1].DistanceSquaredTo(points[j])) {
-        swap(start + 1, j - 1);
-        swapped++;
+    for(int start = 0; start < points.length; start++) {
+      for(int j = start + 3; j < points.length; j++) {
+        if(points[start].DistanceSquaredTo(points[start + 1]) + points[j - 1].DistanceSquaredTo(points[j]) >
+          points[start].DistanceSquaredTo(points[j - 1]) + points[start + 1].DistanceSquaredTo(points[j])) {
+          swap(start + 1, j - 1);
+          swapped++;
+        }
       }
     }
-    if(swapped > 0) {
-      return swapped + two_opt(start);
-    } else if(points.length - start > 4) {
-      return two_opt(start + 1);
-    }
-    return 0;
+    return swapped;
   }
 
   private void swap(int start, int end) {

@@ -8,16 +8,19 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.util.Scanner;
 
 public class ClosedCurveRunner {
   public static void main(String[] args) {
-    if(args.length == 0) {
-      System.out.println("Please pass in a filename as a parameter.");
-      return;
-    }
-    for(int i = 0; i < args.length; i++) {
-      processImage(args[i]);
-    }
+    Scanner gets = new Scanner(System.in);
+    String cont = "";
+    do {
+      System.out.print("Enter the filename of the image => ");
+      String filename = gets.nextLine();
+      processImage(filename);
+      System.out.print("Enter yes to process another image (anything else will quit) => ");
+      cont = gets.nextLine();
+    } while(cont.equalsIgnoreCase("y") || cont.equalsIgnoreCase("yes"));
   }
 
   public static void processImage(String filename) {
