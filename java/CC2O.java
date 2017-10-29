@@ -5,8 +5,11 @@ import java.awt.geom.Path2D;
 import java.io.File;
 import javax.imageio.ImageIO;
 
+import javax.swing.JProgressBar;
+
 public class CC2O {
 
+  public static final int MAX_POINTS = 50000;
   public static final float MAX_PROB = 0.1f;
   public static final float BASE_WHITE = 0f;
 
@@ -18,6 +21,8 @@ public class CC2O {
 
   public int height, width;
 
+  private ClosedCurveRunner panel;
+
   public CC2O() {
     points = null;
     height = 0;
@@ -26,18 +31,23 @@ public class CC2O {
     image = null;
   }
 
-  public CC2O(BufferedImage bi) {
+  public CC2O(BufferedImage bi, ClosedCurveRunner p) {
+    panel = p;
     image = bi;
     height = bi.getHeight();
     width = bi.getWidth();
     totalDarkness = 0;
     int tracked = 0;
-
+    p.setTitle("Creating points ...");
+    p.progressbar.setMaximum((width) * (height));
+    p.progressbar.setValue(0);
+    p.progressbar.setIndeterminate(false);
     //Uniform points
     ArrayList<CurvePoint> expandablePoints = new ArrayList<CurvePoint>();
     float count = 0;
     for(int i = 0; i < width; i++) {
       for(int j = 0; j < height; j++) {
+        p.progressbar.setValue((i * height) + j);
         count += MAX_PROB * dtransform(darkness(bi.getRGB(i,j)));
         if(count >= 1) {
           insertPoint(expandablePoints, new CurvePoint((float) i / width, (float) j / height));
@@ -45,9 +55,17 @@ public class CC2O {
         }
       }
     }
+    p.progressbar.setMaximum(expandablePoints.size() + 1);
+    p.setTitle("Cleaning up points ...");
     points = new CurvePoint[expandablePoints.size() + 1];
     for(int i = 0; i < expandablePoints.size(); i++) {
+      p.progressbar.setValue(i);
       points[i] = expandablePoints.get(i);
+    }
+    p.setTitle("Removing excess points ...");
+    p.progressbar.setIndeterminate(true);
+    while(points.length > MAX_POINTS) {
+      points = trim(points);
     }
     System.out.println(points.length + " points generated!");
     points[points.length - 1] = points[0];
@@ -55,6 +73,14 @@ public class CC2O {
       System.out.println("2-opting again!");
     }
     System.out.println("2-opt done!");
+  }
+
+  private CurvePoint[] trim(CurvePoint[] arr) {
+    CurvePoint[] smol = new CurvePoint[arr.length / 2];
+    for(int i = 0; i < arr.length / 2; i++) {
+      smol[i] = arr[i * 2];
+    }
+    return smol;
   }
 
   private void insertPoint(ArrayList<CurvePoint> ps, CurvePoint p) {
@@ -79,9 +105,16 @@ public class CC2O {
   }
 
   private int two_opt(int startIndex) {
+    panel.setTitle("Two-opting!");
+    panel.progressbar.setMaximum((((points.length - 3) * (points.length - 3) + points.length - 3) / 2));
+    panel.progressbar.setValue(0);
+    panel.progressbar.setIndeterminate(false);
     int swapped = 0;
+    int count = 0;
     for(int start = 0; start < points.length; start++) {
       for(int j = start + 3; j < points.length; j++) {
+        count++;
+        panel.progressbar.setValue(count);
         if(points[start].DistanceSquaredTo(points[start + 1]) + points[j - 1].DistanceSquaredTo(points[j]) >
           points[start].DistanceSquaredTo(points[j - 1]) + points[start + 1].DistanceSquaredTo(points[j])) {
           swap(start + 1, j - 1);
