@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 
 public class CC2O {
 
-  public static final float MAX_PROB = 0.1f;
+  public static final float MAX_PROB = 0.2f;
   public static final float BASE_WHITE = 0f;
 
   public CurvePoint[] points;
@@ -70,11 +70,6 @@ public class CC2O {
   }
 
   private void insertPoint(ArrayList<CurvePoint> ps, CurvePoint p) {
-    /*int i = 0;
-    while(i < ps.size() && p.sierpinski_pi() < ps.get(i).sierpinski_pi()) {
-      i++;
-    }
-    ps.add(i,p);*/
     ps.add(p);
   }
 
@@ -88,7 +83,7 @@ public class CC2O {
   }
 
   private float dtransform(float darkness) {
-    return BASE_WHITE + (1 - BASE_WHITE) * darkness * darkness * darkness;
+    return BASE_WHITE + (1 - BASE_WHITE) * darkness;
   }
 
   public BufferedImage draw() {
