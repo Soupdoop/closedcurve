@@ -8,4 +8,4 @@ clean:
 	-rm *.class
 	-rm sorter.exe
 	-rm *~
-	-rm *.txt
+	-rm .points .spoints

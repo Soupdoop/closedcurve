@@ -30,11 +30,11 @@ int two_opt(Point ** pointpointer, int plength) {
   return swapped;
 }
 
-void generate_from_file(char * file_name, Point ** to_fill, int * number_of_points, int * width, int * height) {
+int generate_from_file(char * file_name, Point ** to_fill, int * number_of_points, int * width, int * height) {
   ifstream pfile(file_name);
   if(!pfile.is_open()) {
     cout << "Invalid filename!" << endl;
-    return;
+    return -1;
   }
   int numPoints;
   pfile >> numPoints;
@@ -59,12 +59,14 @@ void generate_from_file(char * file_name, Point ** to_fill, int * number_of_poin
   }
   *to_fill = points;
   *number_of_points = numPoints;
+  return 0;
 }
 
-void write_to_file(char * file_name, Point ** pointspointer, int number_of_points, int width, int height) {
+int write_to_file(char * file_name, Point ** pointspointer, int number_of_points, int width, int height) {
   ofstream pfile(file_name);
   if(!pfile.is_open()) {
     cout << "Invalid filename!" << endl;
+    return -1;
   }
   pfile << number_of_points << endl;
   pfile << width << endl;
@@ -74,6 +76,7 @@ void write_to_file(char * file_name, Point ** pointspointer, int number_of_point
     pfile << points[i].x << endl;
     pfile << points[i].y << endl;
   }
+  return 0;
 }
 
 int main(int argc, char ** argv) {
@@ -82,8 +85,14 @@ int main(int argc, char ** argv) {
   }
   Point * points;
   int number_of_points, width, height;
-  generate_from_file(argv[1], &points, &number_of_points, &width, &height);
+  int read_status = generate_from_file(argv[1], &points, &number_of_points, &width, &height);
+  if(read_status == -1) {
+    return -1;
+  }
   while(two_opt(&points, number_of_points) > 0);
-  write_to_file(argv[2], &points, number_of_points, width, height);
-  return 1;
+  int write_status = write_to_file(argv[2], &points, number_of_points, width, height);
+  if(write_status == -1) {
+    return -1;
+  }
+  return 0;
 }

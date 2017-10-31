@@ -11,9 +11,6 @@ import java.io.PrintWriter;
 
 public class CC2O {
 
-  public static final float MAX_PROB = 0.2f;
-  public static final float BASE_WHITE = 0.1f;
-
   public CurvePoint[] points;
 
   private BufferedImage image;
@@ -36,23 +33,6 @@ public class CC2O {
     width = bi.getWidth();
     totalDarkness = 0;
     int tracked = 0;
-    //Uniform points
-    ArrayList<CurvePoint> expandablePoints = new ArrayList<CurvePoint>();
-    float count = 0;
-    for(int i = 0; i < width; i++) {
-      for(int j = 0; j < height; j++) {
-        count += MAX_PROB * dtransform(darkness(bi.getRGB(i,j)));
-        if(count >= 1) {
-          insertPoint(expandablePoints, new CurvePoint((float) i / width, (float) j / height));
-          count -= 1;
-        }
-      }
-    }
-    points = new CurvePoint[expandablePoints.size() + 1];
-    for(int i = 0; i < expandablePoints.size(); i++) {
-      points[i] = expandablePoints.get(i);
-    }
-    points[points.length - 1] = points[0];
   }
 
   public CC2O(String pointsFileName) throws IOException {
@@ -69,6 +49,27 @@ public class CC2O {
     file.close();
   }
 
+  public void generatePoints(float maxDensity, float baseWhite, boolean isCubic) {
+    //Uniform points
+    ArrayList<CurvePoint> expandablePoints = new ArrayList<CurvePoint>();
+    float count = 0;
+    for(int i = 0; i < width; i++) {
+      for(int j = 0; j < height; j++) {
+        float currdarkness = darkness(image.getRGB(i,j));
+        count += maxDensity * (baseWhite + (1 - baseWhite) * (isCubic ? currdarkness * currdarkness * currdarkness : currdarkness));
+        if(count >= 1) {
+          insertPoint(expandablePoints, new CurvePoint((float) i / width, (float) j / height));
+          count -= 1;
+        }
+      }
+    }
+    points = new CurvePoint[expandablePoints.size() + 1];
+    for(int i = 0; i < expandablePoints.size(); i++) {
+      points[i] = expandablePoints.get(i);
+    }
+    points[points.length - 1] = points[0];
+  }
+
   private void insertPoint(ArrayList<CurvePoint> ps, CurvePoint p) {
     ps.add(p);
   }
@@ -82,16 +83,12 @@ public class CC2O {
     return greyscale;
   }
 
-  private float dtransform(float darkness) {
-    return BASE_WHITE + (1 - BASE_WHITE) * darkness * darkness * darkness;
-  }
-
-  public BufferedImage draw() {
+  public BufferedImage draw(int thickness) {
     BufferedImage b = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D canvas = b.createGraphics();
     canvas.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     canvas.setColor(new Color(0x000000));
-    canvas.setStroke(new BasicStroke(1));
+    canvas.setStroke(new BasicStroke(thickness));
     Path2D.Float curve = new Path2D.Float();
     if(points.length > 2) {
       curve.moveTo(points[0].average(points[1]).getX() * width, points[0].average(points[1]).getY() * height);
