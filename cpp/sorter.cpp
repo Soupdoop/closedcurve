@@ -61,25 +61,29 @@ void generate_from_file(char * file_name, Point ** to_fill, int * number_of_poin
   *number_of_points = numPoints;
 }
 
-void write_to_file(Point ** pointspointer, int number_of_points, int width, int height) {
-  cout << number_of_points << endl;
-  cout << width << endl;
-  cout << height << endl;
+void write_to_file(char * file_name, Point ** pointspointer, int number_of_points, int width, int height) {
+  ofstream pfile(file_name);
+  if(!pfile.is_open()) {
+    cout << "Invalid filename!" << endl;
+  }
+  pfile << number_of_points << endl;
+  pfile << width << endl;
+  pfile << height << endl;
   Point * points = *pointspointer;
   for(int i = 0; i < number_of_points; i++) {
-    cout << points[i].x << endl;
-    cout << points[i].y << endl;
+    pfile << points[i].x << endl;
+    pfile << points[i].y << endl;
   }
 }
 
 int main(int argc, char ** argv) {
-  if(argc < 2) {
+  if(argc < 3) {
     cout << "Please give a filename parameter!" << endl;
   }
   Point * points;
   int number_of_points, width, height;
   generate_from_file(argv[1], &points, &number_of_points, &width, &height);
   while(two_opt(&points, number_of_points) > 0);
-  write_to_file(&points, number_of_points, width, height);
+  write_to_file(argv[2], &points, number_of_points, width, height);
   return 1;
 }
