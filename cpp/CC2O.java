@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 public class CC2O {
 
   public static final float MAX_PROB = 0.2f;
-  public static final float BASE_WHITE = 0f;
+  public static final float BASE_WHITE = 0.1f;
 
   public CurvePoint[] points;
 
@@ -83,7 +83,7 @@ public class CC2O {
   }
 
   private float dtransform(float darkness) {
-    return BASE_WHITE + (1 - BASE_WHITE) * darkness;
+    return BASE_WHITE + (1 - BASE_WHITE) * darkness * darkness * darkness;
   }
 
   public BufferedImage draw() {
