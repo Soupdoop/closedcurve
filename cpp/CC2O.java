@@ -58,7 +58,7 @@ public class CC2O {
         float currdarkness = darkness(image.getRGB(i,j));
         count += maxDensity * (baseWhite + (1 - baseWhite) * (isCubic ? currdarkness * currdarkness * currdarkness : currdarkness));
         if(count >= 1) {
-          insertPoint(expandablePoints, new CurvePoint((float) i / width, (float) j / height));
+          insertPoint(expandablePoints, new CurvePoint((float) i, (float) j));
           count -= 1;
         }
       }
@@ -91,9 +91,9 @@ public class CC2O {
     canvas.setStroke(new BasicStroke(thickness));
     Path2D.Float curve = new Path2D.Float();
     if(points.length > 2) {
-      curve.moveTo(points[0].average(points[1]).getX() * width, points[0].average(points[1]).getY() * height);
+      curve.moveTo(points[0].average(points[1]).getX(), points[0].average(points[1]).getY());
       for(int i = 1; i < points.length; i++) {
-        curve.quadTo(points[i].getX() * width, points[i].getY() * height, points[i].average(points[(i + 1) % (points.length - 1)]).getX() * width, points[i].average(points[(i + 1) % (points.length - 1)]).getY() * height);
+        curve.quadTo(points[i].getX(), points[i].getY(), points[i].average(points[(i + 1) % (points.length - 1)]).getX(), points[i].average(points[(i + 1) % (points.length - 1)]).getY());
       }
     }
     canvas.draw(curve);
