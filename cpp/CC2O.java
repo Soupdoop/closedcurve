@@ -8,6 +8,8 @@ import java.util.Scanner;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.swing.JProgressBar;
+
 
 public class CC2O {
 
