@@ -4,11 +4,17 @@ This is an extra credit project by Jack Herd (jh4yr) for CS 3102 at UVA.
 
 The program will take in an image file, and generate a simple closed curve that approximates the look of the image.
 
+The program is run by executing the ClosedCurveRunner class.
+
+You should use the implementation in /cpp/, the /java/ code has been left in from a VERY rough early implementation and will be removed before too long. While the /java/ code should theoretically work, it is far less efficient.
+
 Note that this program may run for a while! Even with many optimizations made, large inputs (either by resolution of image or by density of points) will run very slowly! You can expect runtimes of 5 - 10 minutes on images around 1000 x 1000, and run times of over an hour on larger still images.
 
 This program works for sure on OSX, and should work on any linux machine with java installed. It may not work on windows but I dont have the ability to test it currently; if it does not work, it likely is due to the call to a C++ program, which may need to be re-written on that platform. Submit an issue or pull request if you think you have a good solution!
 
 In order to compile, please use make with the provided makefile. If you think you know better, it's your responsibility if it breaks.
+
+If you do not have clang++ installed, the makefile may fail. In that instance, you should compile the sorter.cpp file with whatever compiler you happen to have, and make sure the compiled program is in sorter.exe before running.
 
 There are several parameters that can be edited in the user interface that will affect the resulting curve:
 
