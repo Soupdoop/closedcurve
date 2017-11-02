@@ -7,10 +7,13 @@ import java.io.*;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+
 
 public class ClosedCurveRunner extends JFrame {
 
-	public JLabel inputPathLabel, outputPathLabel, lineLabel, whiteLabel, maxLabel, transformLabel;
+	public JLabel inputPathLabel, outputPathLabel, lineLabel, whiteLabel, maxLabel, transformLabel, programStatus;
 
 	public JTextField inputPath, outputPath;
 
@@ -19,6 +22,10 @@ public class ClosedCurveRunner extends JFrame {
 	public JComboBox<String> transformType;
 
 	public JButton runButton;
+
+	public JSeparator topDivider, bottomDivider;
+
+	public final String[] states = new String[]{"Waiting for input ...", "Reading image ...", "Generating points ...", "Handing off to sorting program ...", "Running the two-opt algorithm", "Handing back off to java ...", "Rendering image ...", "Writing image to file..."};
 
 	public ClosedCurveRunner() {
 		inputPathLabel = new JLabel("Path to original image:");
@@ -35,6 +42,11 @@ public class ClosedCurveRunner extends JFrame {
 		transformType = new JComboBox<String>(new String[]{"Linear", "Cubic"});
 		runButton = new JButton("Run");
 
+		topDivider = new JSeparator();
+		bottomDivider = new JSeparator();
+
+		programStatus = new JLabel("Waiting for input");
+
 		runButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				processImage();
@@ -48,33 +60,43 @@ public class ClosedCurveRunner extends JFrame {
 		GroupLayout layout = new GroupLayout(this.getContentPane());
 		this.getContentPane().setLayout(layout);
 
-		this.setSize(300,300);
+		this.setSize(300,400);
 
 		layout.setAutoCreateGaps(true);
 
 		layout.setHorizontalGroup(
-			layout.createSequentialGroup().addGroup(
-				layout.createParallelGroup()
-					.addComponent(inputPathLabel)
-					.addComponent(outputPathLabel)
-					.addComponent(lineLabel)
-					.addComponent(whiteLabel)
-					.addComponent(maxLabel)
-					.addComponent(transformLabel)
-					.addComponent(runButton)
-			).addGroup(
-				layout.createParallelGroup()
-					.addComponent(inputPath)
-					.addComponent(outputPath)
-					.addComponent(lineThickness)
-					.addComponent(baseWhite)
-					.addComponent(maxDensity)
-					.addComponent(transformType)
-			)
+			layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+				.addComponent(topDivider)
+				.addComponent(runButton)
+				.addComponent(bottomDivider)
+				.addComponent(programStatus)
+				.addGroup(
+					layout.createSequentialGroup()
+					.addGap(16)
+					.addGroup(
+						layout.createParallelGroup()
+							.addComponent(inputPathLabel)
+							.addComponent(outputPathLabel)
+							.addComponent(lineLabel)
+							.addComponent(whiteLabel)
+							.addComponent(maxLabel)
+							.addComponent(transformLabel)
+					).addGroup(
+						layout.createParallelGroup()
+							.addComponent(inputPath)
+							.addComponent(outputPath)
+							.addComponent(lineThickness)
+							.addComponent(baseWhite)
+							.addComponent(maxDensity)
+							.addComponent(transformType)
+					).addGap(16)
+				)
 		);
 
 		layout.setVerticalGroup(
-			layout.createSequentialGroup().addGroup(
+			layout.createSequentialGroup()
+			.addGap(16)
+			.addGroup(
 				layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 					.addComponent(inputPathLabel)
 					.addComponent(inputPath)
@@ -98,64 +120,28 @@ public class ClosedCurveRunner extends JFrame {
 				layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 					.addComponent(transformLabel)
 					.addComponent(transformType)
-			).addComponent(runButton)
+			).addComponent(topDivider)
+			.addComponent(runButton)
+			.addComponent(bottomDivider)
+			.addComponent(programStatus)
+			.addGap(16)
 		);
 		this.setVisible(true);
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 	}
 
 	public void processImage() {
-		String imagePath = inputPath.getText();
-		File imgfile = new File(imagePath);
-		BufferedImage img = null;
-		try {
-			img = ImageIO.read(imgfile);
-		} catch(Exception e) {
-			JOptionPane.showMessageDialog(null, "The image cannot be read!", "IO Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		CC2O cc2o = new CC2O(img);
-		cc2o.generatePoints(maxDensity.getValue() / ((float)100), baseWhite.getValue() / ((float)100.0), transformType.getSelectedIndex() == 1);
-
-		PrintWriter pointWriter = null;
-		try {
-			pointWriter = new PrintWriter(".points");
-			cc2o.print(pointWriter);
-		} catch(Exception e) {
-			JOptionPane.showMessageDialog(null, "Error in the handoff to C++ program", "IO Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		} finally {
-			if(pointWriter != null)
-				pointWriter.close();
-		}
-
-		int status = 0;
-		try {
-			Process two_opt = Runtime.getRuntime().exec("./sorter.exe .points .spoints");
-			status = two_opt.waitFor();
-		} catch(Exception e) {
-			JOptionPane.showMessageDialog(null, "Sorting interrupted", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		if(status != 0) {
-			JOptionPane.showMessageDialog(null, "Error in the sorting program", "C++ Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
-		CC2O goodPoints = null;
-		try {
-			goodPoints = new CC2O(".spoints");
-		} catch(Exception e) {
-			JOptionPane.showMessageDialog(null, "Error in the handoff to C++ program", "IO Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		BufferedImage finalImage = goodPoints.draw(lineThickness.getValue());
-		try {
-			ImageIO.write(finalImage, "png", new File(outputPath.getText()));
-		} catch(Exception e) {
-			JOptionPane.showMessageDialog(null, "Error in writing final image", "IO Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+		ImageProcessor proc = new ImageProcessor(inputPath.getText(), outputPath.getText(), maxDensity.getValue() / ((float)100), baseWhite.getValue() / ((float)100), transformType.getSelectedIndex() == 1, lineThickness.getValue());
+		proc.addPropertyChangeListener(
+			new PropertyChangeListener() {
+				public void propertyChange(PropertyChangeEvent evt) {
+             if ("progress".equals(evt.getPropertyName())) {
+                 programStatus.setText(states[(Integer)evt.getNewValue()]);
+             }
+         }
+			}
+		);
+		proc.execute();
 	}
 
 	public static void main(String[] args) {
